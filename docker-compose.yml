@@ -1,0 +1,46 @@
+version: '3.4'
+
+services:
+  db:
+      image: mysql:5.7
+      platform: linux/x86_64
+      container_name: mysql
+      environment:
+        MYSQL_DATABASE: "aula03"
+        MYSQL_USER: "user"
+        MYSQL_PASSWORD: "aula03"
+        MYSQL_ROOT_PASSWORD: "aul@3root"
+        ## Generally not recommended by some people to allow for root.
+        MYSQL_ROOT_HOST: "%" 
+      ports:
+        - "3306:3306"
+      volumes:
+        - ./mysql/volume:/var/lib/mysql
+        - ./mysql/my.cnf:/etc/mysql/my.cnf
+        - ./mysql/my.cnf:/etc/mysql/conf.d/mysql.cnf
+        - ./mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      networks:
+        - netaula
+
+  lucee:
+    platform: linux/arm64
+    build: 
+      dockerfile: ./nginx/Dockerfile
+      context: .
+    environment:
+      - NGINX_HOST=nginx.local
+      - NGINX_PORT=80  
+    container_name: nginx  
+    restart: always 
+    ports: 
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - netaula  
+    links:
+      - "db:mysql"
+
+networks:
+    netaula:
+        driver: "bridge"
